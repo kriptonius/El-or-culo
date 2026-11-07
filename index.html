@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="es">
+<head>
+<title>El Oráculo</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0B6B57">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: una columna pensada para celular. Franja de resumen arriba, chat con la libreta en medio, lista de deudores tipo cuaderno abajo. */
+:root{
+  --paper:#EEF3F5; --surface:#FFFFFF; --ink:#12212B; --muted:#586A77; --line:#D5DFE5; --soft:#E3ECEF;
+  --accent:#0B6B57; --on-accent:#FFFFFF; --warn:#9A4A06; --warn-bg:#FCE9CF;
+  --display:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif;
+  --body:'Instrument Sans','Segoe UI',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1A22; --surface:#15252F; --ink:#E7EEF2; --muted:#8FA2AF; --line:#27394A; --soft:#1C303C;
+    --accent:#43C9A8; --on-accent:#05221B; --warn:#F3B864; --warn-bg:#3A2A12; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1A22; --surface:#15252F; --ink:#E7EEF2; --muted:#8FA2AF; --line:#27394A; --soft:#1C303C;
+  --accent:#43C9A8; --on-accent:#05221B; --warn:#F3B864; --warn-bg:#3A2A12; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--paper); color:var(--ink); font:16px/1.5 var(--body);
+  padding-block:20px 40px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+.wrap{max-width:560px;margin:0 auto;display:grid;gap:18px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.head{display:grid;gap:4px}
+.brand{display:flex;align-items:center;gap:10px;color:var(--accent)}
+.brand svg{flex:none}
+h1{margin:0;font:700 clamp(28px,8vw,36px)/1.05 var(--display);color:var(--ink);letter-spacing:-.01em;text-wrap:balance}
+.tag{margin:0;color:var(--muted)}
+.ex{margin:0;font:500 12px/1.4 var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+
+.band{display:grid;grid-template-columns:1fr 1fr .8fr;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+.band>div{display:grid;gap:2px;padding:12px;min-width:0}
+.band>div+div{border-left:1px solid var(--line)}
+.k{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.v{font:600 clamp(16px,4.8vw,21px)/1.2 var(--mono);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.v.warn{color:var(--warn)}
+
+.chat{background:var(--surface);border:1px solid var(--line);border-radius:14px;display:grid;gap:0;overflow:hidden}
+.log{display:grid;gap:8px;padding:14px;max-height:min(52vh,420px);overflow-y:auto;align-content:start}
+.m{max-width:88%;padding:9px 12px;border-radius:14px;overflow-wrap:anywhere}
+.m.bot{background:var(--soft);justify-self:start;border-bottom-left-radius:4px}
+.m.me{background:var(--accent);color:var(--on-accent);justify-self:end;border-bottom-right-radius:4px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;padding:0 14px 12px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:14px;cursor:pointer;min-width:0;text-align:left}
+.chip:hover{border-color:var(--accent)}
+.compose{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--line);background:var(--paper)}
+.compose input{flex:1;min-width:0;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.compose button{border:0;border-radius:10px;padding:10px 16px;background:var(--accent);color:var(--on-accent);font-weight:600;cursor:pointer}
+
+.compose button.mic{display:grid;place-items:center;padding:0 12px;background:var(--surface);color:var(--accent);border:1px solid var(--line)}
+.compose button.mic.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+@media (prefers-reduced-motion:no-preference){.compose button.mic.on{animation:pulse 1.2s ease-in-out infinite}}
+@keyframes pulse{50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--accent) 25%,transparent)}}
+.book{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:8px}
+.book-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+h2{margin:0;font:700 20px/1.2 var(--display)}
+.link{background:none;border:0;padding:0;color:var(--muted);text-decoration:underline;cursor:pointer;font-size:14px}
+.cols{display:grid;grid-template-columns:1fr auto 72px;gap:12px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding-bottom:4px;border-bottom:2px solid var(--line)}
+.cols span:nth-child(2){text-align:right}
+ol{list-style:none;margin:0;padding:0}
+li{display:grid;grid-template-columns:1fr auto 72px;gap:12px;align-items:center;min-height:52px;border-bottom:1px solid var(--line)}
+.who{display:grid;gap:6px;min-width:0}
+.who b{font-weight:600;overflow-wrap:anywhere}
+.bar{display:block;height:4px;border-radius:2px;background:var(--soft)}
+.bar i{display:block;height:100%;border-radius:2px;background:var(--accent)}
+.amt{font:600 15px var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+.pill{justify-self:end;font-size:12px;padding:2px 8px;border-radius:999px;background:var(--soft);color:var(--muted);white-space:nowrap}
+.pill.late{background:var(--warn-bg);color:var(--warn);font-weight:600}
+.empty{padding:16px 0;color:var(--muted)}
+.note{margin:4px 0 0;font-size:13px;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.m{animation:in .18s ease-out}}
+@keyframes in{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<main class="wrap">
+  <header class="head">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="12.5" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="15" cy="15" r="5" fill="currentColor"/></svg>
+      <h1>El Oráculo</h1>
+    </div>
+    <p class="tag">Escríbele a tu libreta y te responde con tus números.</p>
+    <p class="ex">Bodega Los Andes · datos de ejemplo</p>
+  </header>
+
+  <section class="band" aria-label="Resumen del día">
+    <div><span class="k">Vendido hoy</span><span class="v" id="sHoy">S/ 0</span></div>
+    <div><span class="k">Por cobrar</span><span class="v warn" id="sDeuda">S/ 0</span></div>
+    <div><span class="k">Te deben</span><span class="v" id="sN">0</span></div>
+  </section>
+
+  <section class="chat" aria-label="Chat con El Oráculo">
+    <div id="log" class="log" role="log" aria-live="polite"></div>
+    <div id="chips" class="chips"></div>
+    <form id="f" class="compose">
+      <label for="msg" class="sr">Escribe tu mensaje</label>
+      <input id="msg" type="text" autocomplete="off" placeholder="Ej: Juan me compró 50 soles fiado">
+      <button type="button" id="mic" class="mic" aria-label="Hablar para anotar" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+      <button type="submit">Enviar</button>
+    </form>
+  </section>
+
+  <section class="book" aria-label="Libreta de fiados">
+    <div class="book-h"><h2>Libreta de fiados</h2><button id="reset" class="link" type="button">Reiniciar ejemplo</button></div>
+    <div class="cols"><span>Cliente</span><span>Debe</span><span>Desde</span></div>
+    <ol id="list"></ol>
+    <p class="note">Versión de prueba con datos de ejemplo. Lo que anotes se guarda solo en este navegador. En la versión real, este chat se conecta a tu WhatsApp.</p>
+  </section>
+</main>
+
+<script>
+/*LOGIC*/
+const KEY='oraculo-bodega-v1', DAY=864e5;
+const money=n=>'S/ '+Number(n).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2});
+const money0=n=>'S/ '+Math.round(n).toLocaleString('es-PE');
+const norm=s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+const sod=()=>{const d=new Date();d.setHours(0,0,0,0);return d.getTime();};
+const daysAgo=ts=>Math.max(0,Math.floor((Date.now()-ts)/DAY));
+const STOP=['vendi','venta','hoy','fie','fiado','anota','apunta','ayer','cuanto','quien','me','se','soles'];
+
+function seed(){
+  const n=Date.now(), d=k=>n-k*DAY, h=k=>Math.max(sod()+60000,n-k*36e5);
+  return [
+    {t:'fiado',c:'Don Eusebio',m:320,ts:d(20)},
+    {t:'pago',c:'Don Eusebio',m:100,ts:d(9)},
+    {t:'fiado',c:'Doña Marta',m:180,ts:d(12)},
+    {t:'fiado',c:'Doña Marta',m:60,ts:d(3)},
+    {t:'pago',c:'Doña Marta',m:40,ts:d(2)},
+    {t:'fiado',c:'Pedro Sulca',m:90,ts:d(8)},
+    {t:'fiado',c:'Juan Quispe',m:150,ts:d(5)},
+    {t:'fiado',c:'Rosa Huamán',m:45,ts:d(1)},
+    {t:'contado',c:'',m:96,ts:d(1)},
+    {t:'contado',c:'',m:24.5,ts:h(5)},
+    {t:'contado',c:'',m:61,ts:h(3)},
+    {t:'contado',c:'',m:18.5,ts:h(1)},
+    {t:'fiado',c:'Juan Quispe',m:30,ts:h(2)}
+  ];
+}
+let S=[];
+function load(){
+  try{const r=localStorage.getItem(KEY);if(r){const a=JSON.parse(r);if(Array.isArray(a)&&a.length)return a;}}catch(e){}
+  return seed();
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+S=load();
+
+function ledger(){
+  const by={};
+  for(const e of S){
+    if(!e.c)continue;
+    const x=by[e.c]||(by[e.c]={f:[],paid:0});
+    if(e.t==='fiado')x.f.push({m:e.m,ts:e.ts});
+    if(e.t==='pago')x.paid+=e.m;
+  }
+  const out=[];
+  for(const name of Object.keys(by)){
+    const x=by[name];x.f.sort((a,b)=>a.ts-b.ts);
+    let p=x.paid,debt=0,oldest=null;
+    for(const f of x.f){
+      const use=Math.min(f.m,p);p-=use;const rest=f.m-use;
+      if(rest>0.005){debt+=rest;if(oldest===null)oldest=f.ts;}
+    }
+    if(debt>0.005)out.push({name,debt,oldest});
+  }
+  return out.sort((a,b)=>b.debt-a.debt);
+}
+const debtOf=name=>{const r=ledger().find(x=>x.name===name);return r?r.debt:0;};
+const clients=()=>[...new Set(S.filter(e=>e.c).map(e=>e.c))];
+function sales(from,to,type){
+  return S.filter(e=>(e.t==='contado'||e.t==='fiado')&&(!type||e.t===type)&&e.ts>=from&&e.ts<to).reduce((a,e)=>a+e.m,0);
+}
+function getAmt(text){
+  const m=text.match(/(\d{1,3}(?:,\d{3})+|\d+(?:[.,]\d{1,2})?)/);
+  if(!m)return null;
+  let s=m[1];
+  s=/^\d{1,3}(,\d{3})+$/.test(s)?s.replace(/,/g,''):s.replace(',','.');
+  const v=parseFloat(s);
+  return v>0?v:null;
+}
+function findClient(text){
+  const n=' '+norm(text).replace(/[^a-z0-9 ]/g,' ')+' ';
+  for(const c of clients()){
+    const toks=norm(c).split(/\s+/).filter(t=>t.length>=3&&t!=='don'&&t!=='dona');
+    if(toks.some(t=>n.includes(' '+t+' ')))return c;
+  }
+  return null;
+}
+function newName(text){
+  let raw=null,m=text.match(/^\s*(?:(don|doña|dona)\s+)?([a-záéíóúñ]+(?:\s+[a-záéíóúñ]+)?)\s+(?:me|se)\s/i);
+  if(m)raw=((m[1]?m[1]+' ':'')+m[2]).trim();
+  else{
+    m=text.match(/\b(?:a|de|para)\s+(?:(don|doña|dona)\s+)?([a-záéíóúñ]+(?:\s+[a-záéíóúñ]+)?)\s*$/i);
+    if(m)raw=((m[1]?m[1]+' ':'')+m[2]).trim();
+  }
+  if(!raw)return null;
+  const words=raw.split(/\s+/);
+  if(words.some(w=>STOP.includes(norm(w))))return null;
+  return words.map(w=>w[0].toUpperCase()+w.slice(1).toLowerCase()).join(' ').replace(/^Dona\b/,'Doña');
+}
+const hace=ts=>{const d=daysAgo(ts);return d===0?'hoy':d===1?'hace 1 día':'hace '+d+' días';};
+
+const NUM={cero:0,dos:2,tres:3,cuatro:4,cinco:5,seis:6,siete:7,ocho:8,nueve:9,diez:10,once:11,doce:12,trece:13,catorce:14,quince:15,dieciseis:16,diecisiete:17,dieciocho:18,diecinueve:19,veinte:20,veintiuno:21,veintidos:22,veintitres:23,veinticuatro:24,veinticinco:25,veintiseis:26,veintisiete:27,veintiocho:28,veintinueve:29,treinta:30,cuarenta:40,cincuenta:50,sesenta:60,setenta:70,ochenta:80,noventa:90,cien:100,ciento:100,doscientos:200,trescientos:300,cuatrocientos:400,quinientos:500,seiscientos:600,setecientos:700,ochocientos:800,novecientos:900};
+function numWords(text){
+  const w=text.split(/\s+/),out=[];
+  const key=t=>norm(t).replace(/[^a-z]/g,'');
+  for(let i=0;i<w.length;i++){
+    const k=key(w[i]);
+    if(!(k in NUM)&&k!=='mil'){out.push(w[i]);continue;}
+    let total=0,cur=0,j=i;
+    for(;j<w.length;j++){
+      const t=key(w[j]);
+      if(t in NUM)cur+=NUM[t];
+      else if(t==='mil'){total+=(cur||1)*1000;cur=0;}
+      else if(t==='y'&&j+1<w.length&&key(w[j+1]) in NUM&&j>i)continue;
+      else break;
+    }
+    out.push(String(total+cur));i=j-1;
+  }
+  return out.join(' ');
+}
+function ask(text){
+  text=numWords(text);
+  const n=norm(text).replace(/[¿¡]/g,'').trim();
+  const q=/\?/.test(text)||/^(quien|quienes|cuanto|cuantos|cual|que|como|dime|resumen|balance)\b/.test(n);
+  const amt=getAmt(text);
+  const cli=findClient(text);
+  const L=ledger(),total=L.reduce((a,x)=>a+x.debt,0);
+
+  if(amt!==null&&!q){
+    const isPago=/\bpag(o|ue|aron|a)\b|abon|cancel(o|aron)/.test(n);
+    const isFiado=/fiad|\bfie\b|\bfio\b|credito|apunt|anot/.test(n);
+    const isVenta=/vend|venta|compr|llev|cobr|caja/.test(n);
+    const name=cli||newName(text);
+    if(isPago){
+      if(!cli)return{text:name?'No tengo a **'+name+'** en tu libreta de fiados.':'¿Quién te pagó? Dime el nombre, por ejemplo: "Juan me pagó 20".'};
+      S.push({t:'pago',c:cli,m:amt,ts:Date.now()});
+      const left=debtOf(cli);
+      return{changed:true,text:left<=0.005?'Anotado. **'+cli+'** te pagó '+money(amt)+' y quedó al día.':'Anotado. **'+cli+'** te pagó '+money(amt)+'. Todavía debe **'+money(left)+'**.'};
+    }
+    if(isFiado){
+      if(!name)return{text:'¿A quién le fiaste? Dime el nombre, por ejemplo: "Fié 30 a Lucho".'};
+      S.push({t:'fiado',c:name,m:amt,ts:Date.now()});
+      return{changed:true,text:'Anotado. **'+name+'** te debe ahora **'+money(debtOf(name))+'** (fiado nuevo de '+money(amt)+').'};
+    }
+    if(isVenta){
+      S.push({t:'contado',c:name||'',m:amt,ts:Date.now()});
+      return{changed:true,text:'Venta al contado anotada: **'+money(amt)+'**. Hoy llevas **'+money(sales(sod(),Infinity))+'**.'};
+    }
+    return{text:'Veo un monto de '+money(amt)+'. Dime si fue venta al contado, fiado o un pago. Por ejemplo: "Juan me compró 50 soles fiado".'};
+  }
+
+  if(/(quien|quienes).*(debe|deben).*(mas|mayor)|mayor deudor/.test(n)){
+    if(!L.length)return{text:'Nadie te debe nada ahora. Todo está al día.'};
+    const t=L[0],rest=L.slice(1,3).map(x=>x.name+' ('+money(x.debt)+')');
+    return{text:'**'+t.name+'** es quien más te debe: **'+money(t.debt)+'**, fiado desde '+hace(t.oldest)+'.'+(rest.length?'\nLe siguen '+rest.join(' y ')+'.':'')};
+  }
+  if(/(quien|quienes).*(atrasad|hace tiempo|antigu|no paga|mas tiempo|vencid)/.test(n)){
+    if(!L.length)return{text:'No hay deudas pendientes.'};
+    const o=L.slice().sort((a,b)=>a.oldest-b.oldest)[0];
+    return{text:'La deuda más antigua es de **'+o.name+'**: '+hace(o.oldest)+', todavía debe **'+money(o.debt)+'**. Conviene cobrarle primero.'};
+  }
+  if(cli&&/debe|deuda|fiado|saldo/.test(n)){
+    const r=L.find(x=>x.name===cli);
+    return{text:r?'**'+cli+'** te debe **'+money(r.debt)+'**. Su fiado más viejo es de '+hace(r.oldest)+'.':'**'+cli+'** está al día, no te debe nada.'};
+  }
+  if(/cuanto.*(deben|debe|fiado|por cobrar)|por cobrar|total.*(fiado|deuda)/.test(n)){
+    return{text:L.length?'Te deben **'+money(total)+'** en total, repartido entre '+L.length+(L.length===1?' cliente.':' clientes.'):'Nadie te debe nada ahora.'};
+  }
+  if(/vend|venta|caja|ingres/.test(n)){
+    let from=sod(),to=Infinity,label='Hoy llevas';
+    if(/ayer/.test(n)){from=sod()-DAY;to=sod();label='Ayer vendiste';}
+    else if(/semana|7 dias/.test(n)){from=sod()-6*DAY;label='En los últimos 7 días vendiste';}
+    const c=sales(from,to,'contado'),f=sales(from,to,'fiado');
+    return{text:label+' **'+money(c+f)+'**.\nAl contado '+money(c)+' y fiado '+money(f)+'.'};
+  }
+  if(/resumen|como (va|voy|me fue)|balance/.test(n)){
+    const top=L[0];
+    return{text:'Hoy vendiste **'+money(sales(sod(),Infinity))+'**. Por cobrar tienes **'+money(total)+'** en '+L.length+' clientes.'+(top?'\nEl que más debe es '+top.name+' ('+money(top.debt)+').':'')};
+  }
+  return{text:'Todavía estoy aprendiendo. Puedo anotar y responder cosas como:\n"Juan me compró 50 soles fiado"\n"Doña Marta me pagó 40"\n"¿Quién me debe más?"\n"¿Cuánto vendí hoy?"'};
+}
+/*END*/
+
+const $=id=>document.getElementById(id);
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const rich=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>');
+const log=$('log');
+function addMsg(who,html){
+  const d=document.createElement('div');d.className='m '+who;d.innerHTML=html;
+  log.appendChild(d);log.scrollTop=log.scrollHeight;
+}
+function renderAll(){
+  const L=ledger(),tot=L.reduce((a,x)=>a+x.debt,0),max=L.length?L[0].debt:1;
+  $('sHoy').textContent=money0(sales(sod(),Infinity));
+  $('sDeuda').textContent=money0(tot);
+  $('sN').textContent=L.length+(L.length===1?' cliente':' clientes');
+  const ol=$('list');ol.innerHTML='';
+  if(!L.length){ol.innerHTML='<li class="empty">Nadie te debe nada. Cuando anotes un fiado aparece aquí.</li>';return;}
+  for(const x of L){
+    const li=document.createElement('li'),late=daysAgo(x.oldest)>=15;
+    li.innerHTML='<div class="who"><b>'+esc(x.name)+'</b><span class="bar"><i style="width:'+Math.max(6,Math.round(x.debt/max*100))+'%"></i></span></div>'
+      +'<span class="amt">'+money(x.debt)+'</span>'
+      +'<span class="pill'+(late?' late':'')+'">'+(daysAgo(x.oldest)===0?'hoy':daysAgo(x.oldest)+' d')+'</span>';
+    ol.appendChild(li);
+  }
+}
+function send(text){
+  text=text.trim();if(!text)return;
+  addMsg('me',esc(text));
+  const r=ask(text);
+  if(r.changed){save();renderAll();}
+  setTimeout(()=>addMsg('bot',rich(r.text)),300);
+}
+$('f').addEventListener('submit',e=>{e.preventDefault();const i=$('msg');send(i.value);i.value='';i.focus();});
+$('reset').addEventListener('click',()=>{S=seed();save();renderAll();addMsg('bot','Listo, volví a los datos de ejemplo.');});
+['¿Quién me debe más?','¿Cuánto vendí hoy?','Juan me compró 50 soles fiado','Doña Marta me pagó 40','¿Quién está atrasado?'].forEach(t=>{
+  const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=t;
+  b.addEventListener('click',()=>send(t));$('chips').appendChild(b);
+});
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+const mic=$('mic');
+if(!SR){mic.hidden=true;}
+else{
+  const rec=new SR();rec.lang='es-PE';rec.interimResults=true;rec.continuous=false;
+  let on=false,heard='';
+  const off=()=>{on=false;mic.classList.remove('on');mic.setAttribute('aria-pressed','false');};
+  rec.onresult=e=>{let t='';for(let i=0;i<e.results.length;i++)t+=e.results[i][0].transcript;heard=t;$('msg').value=t;};
+  rec.onend=()=>{off();const t=heard.trim();heard='';if(t){$('msg').value='';send(t);}};
+  rec.onerror=e=>{
+    off();heard='';$('msg').value='';
+    if(e.error==='not-allowed'||e.error==='service-not-allowed')addMsg('bot','No tengo permiso para usar el micrófono. Actívalo en los ajustes del navegador para este sitio.');
+    else if(e.error==='no-speech')addMsg('bot','No te escuché. Toca el micrófono y vuelve a intentar.');
+    else if(e.error==='network')addMsg('bot','Necesito internet para entender tu voz.');
+  };
+  mic.addEventListener('click',()=>{
+    if(on){rec.stop();return;}
+    try{heard='';$('msg').value='';rec.start();on=true;mic.classList.add('on');mic.setAttribute('aria-pressed','true');}catch(e){off();}
+  });
+}
+addMsg('bot',rich('Hola, soy **El Oráculo**. Anota lo que pasa en tu bodega y pregúntame por tus números.'+(SR?' Toca el micrófono y háblame, o escribe.':' Prueba con los botones de abajo.')));
+renderAll();
+</script>
+
+</body>
+</html>
